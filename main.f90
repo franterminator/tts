@@ -23,16 +23,9 @@ PROGRAM Matrices
     enddo
 
     do j=1, m
-    	do i=1,n
-    		k = i + (j-1)*n
-    		if (i == 1) then
-    			matriz(k,n) = 0
-    		else if (i == N) then
-    			matriz(k,n) = 3
-    		else
-    			matriz(k,n) = 2
-    		endif
-    	enddo
+    	i = (j-1)*n + 1
+        matriz(i+1:i+n-2,n) = 2
+        matriz(i+n-1,n) = 3
     enddo
 
     do i=1,n*m
@@ -43,11 +36,16 @@ PROGRAM Matrices
     	endif
     enddo
 
+    do j=1,m
+        i = (j-1)*n + 1
+        matriz(i:i+n-2,n+2) = 6
+    enddo
+
     do i=1,n*(m-1)
     	if (i<=n) then
-    		matriz(i,2*n+1) = 6
-    	else
     		matriz(i,2*n+1) = 7
+    	else
+    		matriz(i,2*n+1) = 8
     	endif
 
     enddo

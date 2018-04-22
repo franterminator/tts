@@ -1,7 +1,7 @@
 PROGRAM CROUT
 	implicit none
-	!real(8),allocatable,dimension(:,:):: matriz
-	real(8),dimension(5,5):: matriz
+	real(8),allocatable,dimension(:,:):: matriz
+	real(8),allocatable,dimension(:):: b
 	integer:: i,j,k,n,m,l,u,band
 	real(8):: sum
 
@@ -16,7 +16,7 @@ PROGRAM CROUT
 	read(24,*) m, n
 
 	! look the memory
-	!allocate(matriz(n,m))
+	allocate(matriz(n,m),b(n))
 
 	! fill the matrix with ceros
 	matriz(:,:) = 0
@@ -25,11 +25,21 @@ PROGRAM CROUT
 	read(24,*) matriz 
 	matriz = transpose(matriz)
 
+	! blank line
+	read(24,*)
+
+	! b
+	read(24,*) b 
+	close(24)
+
 	! print the matrix before CROUT
 	write(6,*) "*********** Before crout"
+	write(6,*) "MATRIX ->"
 	do i=1,n
 		write(6,'(*(f7.4,2x))') (matriz(i,j),j=1,m)
 	enddo
+	write(6,*) "B ->"
+	write(6,'(*(f7.4,2x))') (b(i),i=1,n)
 
 	! CROUT
 	do k=1,n-1
@@ -64,29 +74,53 @@ PROGRAM CROUT
 	enddo
 
 
+	! system solution
+	! system solution
+	do i=2,n
+		sum = 0
+		do j=i-l(i),i-1
+			sum = sum + matriz(i,band(i,j))*b(j)
+		enddo
+		b(i) = b(i) - sum
+	enddo
+
+	do i=1,n
+		b(i) = b(i) / matriz(i,band(i,i))
+	enddo
+
+	do i=n,2,-1
+		do j=i-u(i),i-1
+			b(j) = b(j) - matriz(j,band(j,i)) * b(i)
+		enddo
+	enddo
+
+
 	! print the matrix after crout
 	write(6,*) "*********** After crout"
+	write(6,*) "MATRIX ->"
 	do i=1,n
-		write(6,'(*(f8.4,2x))') (matriz(i,j),j=1,m)
+		write(6,'(*(f7.4,2x))') (matriz(i,j),j=1,m)
 	enddo
+	write(6,*) "B ->"
+	write(6,'(*(f7.4,2x))') (b(i),i=1,n)
 
 	read(5,*)
 END PROGRAM
 
 FUNCTION l(i)
 	integer:: l,i
-	l = min(2,i-1)
+	l = min(3,i-1)
 	return
 END FUNCTION
 
 FUNCTION u(j)
 	integer:: u,j
-	u = min(2,j-1)
+	u = min(3,j-1)
 	return
 END FUNCTION
 
 FUNCTION band(i,j)
 	integer:: band,i,j
-	band = (j-i)+2+1
+	band = (j-i)+3+1
 	return
 END FUNCTION
