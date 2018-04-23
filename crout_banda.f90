@@ -2,7 +2,7 @@ PROGRAM CROUT
 	implicit none
 	real(8),allocatable,dimension(:,:):: matriz
 	real(8),allocatable,dimension(:):: b
-	integer:: i,j,k,n,m,l,u,band
+	integer:: i,j,k,n,m
 	real(8):: sum
 
 	! define semiancho en las funciones
@@ -105,22 +105,27 @@ PROGRAM CROUT
 	write(6,'(*(f7.4,2x))') (b(i),i=1,n)
 
 	read(5,*)
+
+
+	CONTAINS
+
+	integer function l(i)
+		integer:: i
+		l = min(n,i-1)
+		return
+	end function l
+
+	integer FUNCTION u(j)
+		integer:: j
+		u = min(n,j-1)
+		return
+	END FUNCTION
+
+	integer FUNCTION band(i,j)
+		integer:: i,j
+		band = (j-i)+n+1
+		return
+	END FUNCTION
+
 END PROGRAM
 
-FUNCTION l(i)
-	integer:: l,i
-	l = min(3,i-1)
-	return
-END FUNCTION
-
-FUNCTION u(j)
-	integer:: u,j
-	u = min(3,j-1)
-	return
-END FUNCTION
-
-FUNCTION band(i,j)
-	integer:: band,i,j
-	band = (j-i)+3+1
-	return
-END FUNCTION
