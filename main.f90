@@ -1,6 +1,7 @@
 PROGRAM Matrices
+    USE matrix_limits
     IMPLICIT NONE
-    INTEGER :: n, m, i, j, k
+    INTEGER :: i, j, k, u, l, band, temp
     real(8):: sum
     REAL(8), dimension(:,:), allocatable :: matriz
     real(8), dimension(:), allocatable:: b
@@ -24,34 +25,39 @@ PROGRAM Matrices
 
     ! ***************************** Generacion matriz
     matriz(:,:)= 0			!relleno la matriz de ceros
+    ! b
     do i=n+1,n*m
     	matriz(i,1) = 1
     enddo
 
+    ! 0,a...a,2a
     do j=1, m
     	i = (j-1)*n + 1
-        matriz(i+1:i+n-2,n) = 2
-        matriz(i+n-1,n) = 3
+        matriz(i+1:i+n-2,n) = 1
+        matriz(i+n-1,n) = 2
     enddo
 
+    ! d-e ... d-e d ---- d
     do i=1,n*m
     	if (i <= n) then
-    		matriz(i,n+1) = 4
+    		matriz(i,n+1) = 1
     	else
-    		matriz(i,n+1) = 10
+    		matriz(i,n+1) = 2
     	endif
     enddo
 
+    ! a...a 0
     do j=1,m
         i = (j-1)*n + 1
-        matriz(i:i+n-2,n+2) = 6
+        matriz(i:i+n-2,n+2) = 1
     enddo
 
+    ! 2b ... 2b b ... b
     do i=1,n*(m-1)
     	if (i<=n) then
-    		matriz(i,2*n+1) = 7
+    		matriz(i,2*n+1) = 2
     	else
-    		matriz(i,2*n+1) = 8
+    		matriz(i,2*n+1) = 1
     	endif
 
     enddo
@@ -82,10 +88,8 @@ PROGRAM Matrices
     enddo
 
     write(6,*) "Vector -------"
-    do i=1,n*m
-        write(6,'(f4.2)') b(i)
-    enddo 
-
+    write(6,'(*(f4.2,2x))') (b(i),i=1,n*m)
+    write(6,*) 
 
 
 
@@ -95,10 +99,84 @@ PROGRAM Matrices
     ! ---------------------------------------------------
     ! FACTORIZACION
     ! ---------------------------------------------------
-    
-! CROUT
-    do k=1,n*m-1
+    CALL CROUT(matriz)
 
+    CALL SOLVE(matriz,b)
+
+
+
+    ! print the matrix after crout
+    write(6,*) "*********** After crout"
+    write(6,*) "MATRIX ->"
+    do i=1,n*m
+        write(6,'(*(f8.4,2x))') (matriz(i,j),j=1,2*n+1)
+    enddo
+    write(6,*) "B ->"
+    write(6,'(*(f7.4,2x))') (b(i),i=1,n*m)
+
+
+
+
+    ! THE END
+
+    read(5,*)
+
+
+    
+END PROGRAM
+
+
+
+
+
+MODULE matrix_limits
+    integer, save:: n, m
+END MODULE
+
+
+
+
+
+
+
+INTEGER FUNCTION l(i)
+    USE matrix_limits
+    integer:: i
+    l = min(n,i-1)
+    return
+END FUNCTION
+
+
+
+FUNCTION u(j)
+    USE matrix_limits
+    integer:: u,j
+    u = min(n,j-1)
+    return
+END FUNCTION
+
+
+
+FUNCTION band(i,j)
+    USE matrix_limits
+    integer:: band,i,j
+    band = (j-i)+n+1
+    return
+END FUNCTION
+
+
+
+
+
+
+SUBROUTINE CROUT(matriz)
+    !variables SUBROUTINE
+    USE matrix_limits
+    real(8),dimension(n*m,n*m),intent(inout):: matriz
+    integer:: i, j, k, u, l, band
+
+    ! CROUT
+    do k=1,n*m-1
         do i=max(2,k+1-u(k+1)), k
             sum = 0
             do j=max(i-l(i),k+1-u(k+1)), i-1
@@ -129,6 +207,22 @@ PROGRAM Matrices
     enddo
 
 
+END SUBROUTINE CROUT
+
+
+
+
+
+
+
+SUBROUTINE solve(matriz,b) 
+    !variables subroutine
+    USE matrix_limits
+    real(8),dimension(n*m,2*n+1),intent(in):: matriz
+    real(8),dimension(n*m),intent(inout):: b
+    integer:: i, j, k, u, l, band
+
+
     ! system solution
     do i=2,n*m
         sum = 0
@@ -147,42 +241,4 @@ PROGRAM Matrices
             b(j) = b(j) - matriz(j,band(j,i)) * b(i)
         enddo
     enddo
-
-
-    ! print the matrix after crout
-    write(6,*) "*********** After crout"
-    write(6,*) "MATRIX ->"
-    do i=1,n*m
-        write(6,'(*(f8.4,2x))') (matriz(i,j),j=1,n*m)
-    enddo
-    write(6,*) "B ->"
-    write(6,'(*(f7.4,2x))') (b(i),i=1,n*m)
-
-
-
-
-    ! THE END
-
-    read(5,*)
-
-    CONTAINS
-
-    INTEGER FUNCTION l(i)
-        integer:: i
-        l = min(n,i-1)
-        return
-    END FUNCTION
-
-    FUNCTION u(j)
-        integer:: u,j
-        u = min(n,j-1)
-        return
-    END FUNCTION
-
-    FUNCTION band(i,j)
-        integer:: band,i,j
-        band = (j-i)+n+1
-        return
-    END FUNCTION
-END PROGRAM
-
+END SUBROUTINE
