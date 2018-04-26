@@ -1,0 +1,13 @@
+# Los espacios entre la etiqueta, el igual y el numero. Importante que no haya espacio al principio de la linea. El programa pedira los datos que faltan o estan incorrectos.
+Dx = 14.24e-06
+Dy = 14.24e-06
+Long = 6
+Ancho = 4
+Te = 22
+Tf = 40
+K = 50
+deltaT = 600
+Tfinal = 86400
+n = 6
+m = 4
+h = 50
