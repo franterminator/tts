@@ -43,10 +43,17 @@ PROGRAM Matrices
     z(:) = te
     write(6,*) "Temperatura ******* "
     call print_vector(6,z,n,m)
-    call generacion_vector(z,a,b,c,w,tf,n,m)
+    
+    call generacion_vector(z,a,b,c,w,te,tf,n,m)
 
     write(6,*) "Vector -------"
-    call print_vector(6,z,n,m)
+    do j=m,1,-1
+        do i=1,n
+            k = i + (j-1)*n
+            write(6,'(e10.4,6x)',advance="no") z(k)
+        enddo
+        write(6,*)
+    enddo
     
     write(6,*) 
 
@@ -74,7 +81,7 @@ PROGRAM Matrices
         call print_vector(6,z,n,m)
         call write_file(it,z,n,m)
 
-        CALL generacion_vector(z,a,b,c,w,tf,n,m)
+        CALL generacion_vector(z,a,b,c,w,te,tf,n,m)
 
         it = it + 1
     enddo
@@ -307,8 +314,8 @@ SUBROUTINE data(a,b,c,d,w,te,tf,tfinal,deltat,n,m)
         b = -dy/deltay**2
         c = 1/deltat
         d = 1/deltat - 2 * a - 2 * b
-        w = -2 * b * deltay * h / k
-        write(6,'(a,f8.2,a,f8.2,a,f8.2,a,f8.2,a,f8.2,a)') "[A,B,C,D,W] = [",a,", ",b,", ",c,", ",d,", ",w,"]"
+        w = 2 * b * deltay * h / k
+        write(6,'(a,e12.4,a,e12.4,a,e12.4,a,e12.4,a,e12.4,a)') "[A,B,C,D,W] = [",a,", ",b,", ",c,", ",d,", ",w,"]"
     endif
 
 
@@ -346,7 +353,7 @@ SUBROUTINE generacion_matriz (matriz,a,b,c,d,w,n,m)
     ! d-e ... d-e d ---- d
     do i=1,n*m
         if (i <= n) then
-            matriz(i,n+1) = d+w
+            matriz(i,n+1) = d-w
         else
             matriz(i,n+1) = d
         endif
@@ -375,9 +382,9 @@ END SUBROUTINE
 
 
 
-SUBROUTINE generacion_vector(z,a,b,c,w,tf,n,m)
+SUBROUTINE generacion_vector(z,a,b,c,w,te,tf,n,m)
     integer,intent(in):: n,m
-    real(8),intent(in):: a,b,c,w,tf
+    real(8),intent(in):: a,b,c,w,te,tf
     real(8), dimension(n*m), intent(inout):: z
 
 
@@ -385,10 +392,10 @@ SUBROUTINE generacion_vector(z,a,b,c,w,tf,n,m)
         i = 1 + (j-1)*n
         ! procedural 
         if (j==1) then
-            ! c * u - a * tf + w * tf
-            z(i) = c*z(i) - a*tf + w*tf
-            ! c * u + w * tf
-            z(i+1:n*j) = c*z(i+1:n*j) + w*tf
+            ! c * u - a * tf - w * te
+            z(i) = c*z(i) - a*tf - w*te
+            ! c * u + w * te
+            z(i+1:n*j) = c*z(i+1:n*j) - w*te
 
         else if (j==m) then
             ! c * u - a * tf - b * tf
@@ -493,8 +500,10 @@ SUBROUTINE print_matrix(unit,matriz,n,m)
     integer:: i,j
     
     do i=1,n*m
-        write(unit,'(*(f8.4,2x))') (matriz(i,j),j=1,2*n+1)
+        write(unit,'(*(e10.4,2x))') (matriz(i,j),j=1,2*n+1)
     enddo
+
+    write(unit,*)
 
 END SUBROUTINE
 
@@ -506,10 +515,13 @@ SUBROUTINE print_vector(unit,vector,n,m)
     do j=m,1,-1
         do i=1,n
             k = i + (j-1)*n
-            write(unit,'(f8.2,6x)',advance="no") vector(k)
+            write(unit,'(f6.2,2x)',advance="no") vector(k)
         enddo
         write(unit,*)
     enddo
+
+    write(unit,*)
+
 END SUBROUTINE
 
 SUBROUTINE write_file(it,vector,n,m)
