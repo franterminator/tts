@@ -12,6 +12,12 @@ PROGRAM Matrices
     real(8):: deltax,deltay,a,b,c,d,w
     real(8):: long,ancho,h,k,dx,dy,te,tf,deltat,tfinal
 
+
+
+
+    ! open result file
+    open(unit=55,file="resultados.txt",status="replace")
+
     ! get the data form user
     call data(long,ancho,h,k,dx,dy,te,tf,tfinal,deltat,n,m)
 
@@ -47,18 +53,12 @@ PROGRAM Matrices
     ! ---------------------------------------------------
     z(:) = te
     write(6,*) "Temperatura ******* "
-    call print_vector(6,z,n,m)
+    call print_vector(6,"double",z,n,m)
     
     call generacion_vector(z,a,b,c,w,te,tf,n,m)
 
     write(6,*) "Vector -------"
-    do j=m,1,-1
-        do i=1,n
-            p = i + (j-1)*n
-            write(6,'(e10.4,6x)',advance="no") z(p)
-        enddo
-        write(6,*)
-    enddo
+    call print_vector(6,"exponential",z,n,m)
     
     write(6,*) 
 
@@ -82,9 +82,10 @@ PROGRAM Matrices
         CALL SOLVE(matriz,z,n,m)
         
 
-        write(6,'(a,i2,a,f7.2,a,f7.2)') "Temperaturas -> iteracion i = ",it," -- tiempo = ",deltat*it,"//",tfinal
-        call print_vector(6,z,n,m)
-        call write_file(it,z,n,m)
+        write(6,'(a,i6,a,f10.2,a,f10.2)') "Temperaturas -> iteracion i = ",it," -- tiempo = ",deltat*it,"//",tfinal
+        call print_vector(6,"double",z,n,m)
+        write(55,*) "-> iteracion ---------",it
+        call print_vector(55,"double",z,n,m)
 
         CALL generacion_vector(z,a,b,c,w,te,tf,n,m)
 
@@ -339,12 +340,33 @@ SUBROUTINE data(long,ancho,h,k,dx,dy,te,tf,tfinal,deltat,n,m)
                 write(40,*) "Tf = ",tf
                 write(40,*) "deltaT = ",deltat
                 write(40,*) "Tfinal = ",tfinal
+                close(40)
             else
                 write(6,'(/,a,/)') "!!!!Hay problemas al guardar el archivo. Comprueba que el archivo no exista antes!!!!"
                 read(5,*)
             endif
         enddo
     endif
+
+
+    ! guardar los datos en el archivo de resultados
+    write(55,*) "################################ " 
+    write(55,*) "#            DATOS             # "
+    write(55,*) "################################ " 
+    write(55,*) "# n = ",n
+    write(55,*) "# m = ",m
+    write(55,*) "# Long = ",long
+    write(55,*) "# Ancho = ",ancho
+    write(55,*) "# Dx = ",dx
+    write(55,*) "# Dy = ",dy
+    write(55,*) "# h = ",h
+    write(55,*) "# K = ",k
+    write(55,*) "# Te = ",te
+    write(55,*) "# Tf = ",tf
+    write(55,*) "# deltaT = ",deltat
+    write(55,*) "# Tfinal = ",tfinal
+    write(55,*) "################################ " 
+    write(55,*) 
 
 END SUBROUTINE
 
@@ -356,9 +378,12 @@ END SUBROUTINE
 
 
 SUBROUTINE generacion_matriz (matriz,a,b,c,d,w,n,m) 
+    IMPLICIT none
     integer,intent(in):: n,m
     real(8),intent(in):: a,b,c,d,w
     real(8),dimension(n*m,2*n+1),intent(inout):: matriz
+    integer:: i,j,k
+    real(8):: sum
     ! ---------------------------------------------------
     ! GENERACION
     ! ---------------------------------------------------
@@ -410,9 +435,11 @@ END SUBROUTINE
 
 
 SUBROUTINE generacion_vector(z,a,b,c,w,te,tf,n,m)
+    IMPLICIT none
     integer,intent(in):: n,m
     real(8),intent(in):: a,b,c,w,te,tf
     real(8), dimension(n*m), intent(inout):: z
+    integer:: i,j
 
 
     do j=1,m
@@ -448,10 +475,12 @@ END SUBROUTINE
 
 
 SUBROUTINE CROUT(matriz,n,m)
+    implicit none
     !variables SUBROUTINE
     integer,intent(in):: n,m
     real(8),dimension(n*m,n*m),intent(inout):: matriz
     integer:: i, j, k, u, l, band
+    real(8):: sum
 
     ! CROUT
     do k=1,n*m-1
@@ -493,12 +522,13 @@ END SUBROUTINE CROUT
 
 
 SUBROUTINE solve(matriz,b,n,m) 
+    IMPLICIT none
     !variables subroutine
     integer,intent(in):: n,m
     real(8),dimension(n*m,2*n+1),intent(in):: matriz
     real(8),dimension(n*m),intent(inout):: b
     integer:: i, j, k, u, l, band
-
+    real(8):: sum
 
     ! system solution
     do i=2,n*m
@@ -522,6 +552,7 @@ END SUBROUTINE
 
 
 SUBROUTINE print_matrix(unit,matriz,n,m)
+    implicit none
     integer,intent(in):: unit,n,m
     real(8),dimension(n*m,2*n+1),intent(in):: matriz
     integer:: i,j
@@ -534,40 +565,22 @@ SUBROUTINE print_matrix(unit,matriz,n,m)
 
 END SUBROUTINE
 
-SUBROUTINE print_vector(unit,vector,n,m)
+SUBROUTINE print_vector(unit,formato,vector,n,m)
+    implicit none
     INTEGER,intent(in):: unit,n,m
     real(8), dimension(n*m), intent(in):: vector
     integer:: i,j,k
+    character(len=*),intent(in):: formato
 
     do j=m,1,-1
         do i=1,n
             k = i + (j-1)*n
-            write(unit,'(f6.2,2x)',advance="no") vector(k)
+            if (formato=="exponential") write(unit,'(e11.4,2x)',advance="no") vector(k)
+            if (formato=="double") write(unit,'(f6.2,2x)',advance="no") vector(k)
         enddo
         write(unit,*)
     enddo
 
     write(unit,*)
-
-END SUBROUTINE
-
-SUBROUTINE write_file(it,vector,n,m)
-    integer,intent(in):: n,m,it
-    real(8), dimension(n*m), intent(in):: vector
-    logical:: existe
-    character(len=20):: archivo="resultados.txt"
-
-    inquire(file=archivo,exist=existe)
-    if(.not. existe) then
-        open(unit=55,file=archivo,status="new")
-        write(55,*) "iteracion ---------------- ",it
-        call print_vector(55,vector,n,m)
-        close(55)
-    else
-        open(unit=55,file=archivo,status="old",access="append")
-        write(55,*) "iteracion ---------------- ",it
-        call print_vector(55,vector,n,m)
-        close(55)
-    endif
 
 END SUBROUTINE
