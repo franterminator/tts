@@ -1,7 +1,7 @@
 PROGRAM Matrices
     IMPLICIT NONE
     ! bucles
-    INTEGER :: i, j, k, it
+    INTEGER :: i, j, p, it
     !factorizacion
     integer:: n, m, u, l, band
     real(8):: sum
@@ -9,11 +9,21 @@ PROGRAM Matrices
     REAL(8), dimension(:,:), allocatable :: matriz
     real(8), dimension(:), allocatable:: z
     ! datos
-    real(8):: a,b,c,d,w
-    real(8):: te,tf,tfinal,deltat
+    real(8):: deltax,deltay,a,b,c,d,w
+    real(8):: long,ancho,h,k,dx,dy,te,tf,deltat,tfinal
 
     ! get the data form user
-    call data(a,b,c,d,w,te,tf,tfinal,deltat,n,m)
+    call data(long,ancho,h,k,dx,dy,te,tf,tfinal,deltat,n,m)
+
+    ! calcular a,b,c,d,w
+    deltax = long / n
+    deltay = ancho / m
+    a = -dx/deltax**2
+    b = -dy/deltay**2
+    c = 1/deltat
+    d = 1/deltat - 2 * a - 2 * b
+    w = 2 * b * deltay * h / k
+    write(6,'(a,e12.4,a,e12.4,a,e12.4,a,e12.4,a,e12.4,a)') "[A,B,C,D,W] = [",a,", ",b,", ",c,", ",d,", ",w,"]"
 
     
     WRITE(6,'(a,i2,a,i2)') "Los datos introducidos son: ",n," // ",m
@@ -31,11 +41,6 @@ PROGRAM Matrices
     write(6,*) "Matriz -------"
     call print_matrix(6,matriz,n,m)
 
-    ! ---------------------------------------------------
-    ! GENERACION TEMPERATURAS
-    ! ---------------------------------------------------
-
-
 
     ! ---------------------------------------------------
     ! GENERACION VECTOR INDEPENDIENTES
@@ -49,8 +54,8 @@ PROGRAM Matrices
     write(6,*) "Vector -------"
     do j=m,1,-1
         do i=1,n
-            k = i + (j-1)*n
-            write(6,'(e10.4,6x)',advance="no") z(k)
+            p = i + (j-1)*n
+            write(6,'(e10.4,6x)',advance="no") z(p)
         enddo
         write(6,*)
     enddo
@@ -138,22 +143,22 @@ END FUNCTION
 
 
 
-SUBROUTINE data(a,b,c,d,w,te,tf,tfinal,deltat,n,m) 
+SUBROUTINE data(long,ancho,h,k,dx,dy,te,tf,tfinal,deltat,n,m)
+    IMPLICIT none
     character(len=100):: option
     character(len=32):: label, equal
-    real(8),intent(inout):: a,b,c,d,w,te,tf,tfinal,deltat
+    real(8),intent(inout):: long,ancho,h,k,dx,dy,te,tf,tfinal,deltat
     integer,intent(inout):: n,m
-    real(8):: long=-1,ancho=-1,k=-1,dx=-1,dy=-1
-    real(8):: deltax, deltay
     real(8):: datos
+    integer:: sel
     integer:: error=0
 
-    deltat=-1
-    tfinal=-1
-    n=-1
-    m=-1
-    te=-1
-    tf=-1
+    long=-1; ancho=-1;
+    h=-1; k=-1; dx=-1; dy=-1
+    deltat=-1; tfinal=-1
+    te=-1; tf=-1
+    n=-1; m=-1
+    
 
     call getarg(1,option)
 
@@ -210,8 +215,8 @@ SUBROUTINE data(a,b,c,d,w,te,tf,tfinal,deltat,n,m)
             ! texto = valor
             read(34,*,iostat=error) label,equal,datos
             ! escupe los datos
-            write(6,*) "*********************"
-            write(6,'(a,x,a8,2x,a,f5.2,x,a)') "|",trim(label)," -> ",datos,"|"
+            write(6,*) "**************************"
+            write(6,'(a,x,a8,2x,a,e11.4,x,a)') "|",trim(label)," -> ",datos,"|"
 
 
             ! parser
@@ -304,20 +309,42 @@ SUBROUTINE data(a,b,c,d,w,te,tf,tfinal,deltat,n,m)
         PRINT *,""
 
         close(34)
-
-
-
-        ! calcular e,f,g,h,w
-        deltax = long / n
-        deltay = ancho / m
-        a = -dx/deltax**2
-        b = -dy/deltay**2
-        c = 1/deltat
-        d = 1/deltat - 2 * a - 2 * b
-        w = 2 * b * deltay * h / k
-        write(6,'(a,e12.4,a,e12.4,a,e12.4,a,e12.4,a,e12.4,a)') "[A,B,C,D,W] = [",a,", ",b,", ",c,", ",d,", ",w,"]"
+        
     endif
 
+
+    ! pregunta por guardar los datos en un archivo de texto
+    write(6,'(a,/,a,/,a,/,a)') "Desea guardar los datos introducidos?","1) Si","2) No","Introduzca la opcion 1 o 2:"
+    read(5,*) sel
+    if(sel==1) then
+        error = 1
+        do while(error /= 0)
+            write(6,*) "    -> Nombre del archivo? (No olvide la extension):"
+            read(5,*) label
+            open(unit=40, status="new", iostat=error, file=label)
+            if(error == 0) then
+                write(6,*) "            Guardando........"
+                write(40,'(a)',advance="no") "# Los espacios entre la etiqueta, el igual y el numero son importantes. " 
+                write(40,'(a)',advance="no") "No debe haber espacio al principio de la linea. "
+                write(40,'(a)') "El programa pedira los datos que faltan o estan incorrectos. "
+                write(40,*) "n = ",n
+                write(40,*) "m = ",m
+                write(40,*) "Long = ",long
+                write(40,*) "Ancho = ",ancho
+                write(40,*) "Dx = ",dx
+                write(40,*) "Dy = ",dy
+                write(40,*) "h = ",h
+                write(40,*) "K = ",k
+                write(40,*) "Te = ",te
+                write(40,*) "Tf = ",tf
+                write(40,*) "deltaT = ",deltat
+                write(40,*) "Tfinal = ",tfinal
+            else
+                write(6,'(/,a,/)') "!!!!Hay problemas al guardar el archivo. Comprueba que el archivo no exista antes!!!!"
+                read(5,*)
+            endif
+        enddo
+    endif
 
 END SUBROUTINE
 
