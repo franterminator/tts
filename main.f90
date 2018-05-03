@@ -1,7 +1,7 @@
 PROGRAM Matrices
     IMPLICIT NONE
     ! bucles
-    INTEGER :: i, j, k, it
+    INTEGER :: i, j, p, it
     !factorizacion
     integer:: n, m, u, l, band
     real(8):: sum
@@ -9,11 +9,27 @@ PROGRAM Matrices
     REAL(8), dimension(:,:), allocatable :: matriz
     real(8), dimension(:), allocatable:: z
     ! datos
-    real(8):: a,b,c,d,w
-    real(8):: te,tf,tfinal,deltat
+    real(8):: deltax,deltay,a,b,c,d,w
+    real(8):: long,ancho,h,k,dx,dy,te,tf,deltat,tfinal
+
+
+
+
+    ! open result file
+    open(unit=55,file="resultados.txt",status="replace")
 
     ! get the data form user
-    call data(a,b,c,d,w,te,tf,tfinal,deltat,n,m)
+    call data(long,ancho,h,k,dx,dy,te,tf,tfinal,deltat,n,m)
+
+    ! calcular a,b,c,d,w
+    deltax = long / n
+    deltay = ancho / m
+    a = -dx/deltax**2
+    b = -dy/deltay**2
+    c = 1/deltat
+    d = 1/deltat - 2 * a - 2 * b
+    w = 2 * b * deltay * h / k
+    write(6,'(a,e12.4,a,e12.4,a,e12.4,a,e12.4,a,e12.4,a)') "[A,B,C,D,W] = [",a,", ",b,", ",c,", ",d,", ",w,"]"
 
     
     WRITE(6,'(a,i2,a,i2)') "Los datos introducidos son: ",n," // ",m
@@ -31,29 +47,18 @@ PROGRAM Matrices
     write(6,*) "Matriz -------"
     call print_matrix(6,matriz,n,m)
 
-    ! ---------------------------------------------------
-    ! GENERACION TEMPERATURAS
-    ! ---------------------------------------------------
-
-
 
     ! ---------------------------------------------------
     ! GENERACION VECTOR INDEPENDIENTES
     ! ---------------------------------------------------
     z(:) = te
     write(6,*) "Temperatura ******* "
-    call print_vector(6,z,n,m)
+    call print_vector(6,"double",z,n,m)
     
     call generacion_vector(z,a,b,c,w,te,tf,n,m)
 
     write(6,*) "Vector -------"
-    do j=m,1,-1
-        do i=1,n
-            k = i + (j-1)*n
-            write(6,'(e10.4,6x)',advance="no") z(k)
-        enddo
-        write(6,*)
-    enddo
+    call print_vector(6,"exponential",z,n,m)
     
     write(6,*) 
 
@@ -77,9 +82,10 @@ PROGRAM Matrices
         CALL SOLVE(matriz,z,n,m)
         
 
-        write(6,'(a,i2,a,f7.2,a,f7.2)') "Temperaturas -> iteracion i = ",it," -- tiempo = ",deltat*it,"//",tfinal
-        call print_vector(6,z,n,m)
-        call write_file(it,z,n,m)
+        write(6,'(a,i6,a,f10.2,a,f10.2)') "Temperaturas -> iteracion i = ",it," -- tiempo = ",deltat*it,"//",tfinal
+        call print_vector(6,"double",z,n,m)
+        write(55,*) "-> iteracion ---------",it
+        call print_vector(55,"double",z,n,m)
 
         CALL generacion_vector(z,a,b,c,w,te,tf,n,m)
 
@@ -138,22 +144,22 @@ END FUNCTION
 
 
 
-SUBROUTINE data(a,b,c,d,w,te,tf,tfinal,deltat,n,m) 
+SUBROUTINE data(long,ancho,h,k,dx,dy,te,tf,tfinal,deltat,n,m)
+    IMPLICIT none
     character(len=100):: option
     character(len=32):: label, equal
-    real(8),intent(inout):: a,b,c,d,w,te,tf,tfinal,deltat
+    real(8),intent(inout):: long,ancho,h,k,dx,dy,te,tf,tfinal,deltat
     integer,intent(inout):: n,m
-    real(8):: long=-1,ancho=-1,k=-1,dx=-1,dy=-1
-    real(8):: deltax, deltay
     real(8):: datos
+    integer:: sel
     integer:: error=0
 
-    deltat=-1
-    tfinal=-1
-    n=-1
-    m=-1
-    te=-1
-    tf=-1
+    long=-1; ancho=-1;
+    h=-1; k=-1; dx=-1; dy=-1
+    deltat=-1; tfinal=-1
+    te=-1; tf=-1
+    n=-1; m=-1
+    
 
     call getarg(1,option)
 
@@ -210,8 +216,8 @@ SUBROUTINE data(a,b,c,d,w,te,tf,tfinal,deltat,n,m)
             ! texto = valor
             read(34,*,iostat=error) label,equal,datos
             ! escupe los datos
-            write(6,*) "*********************"
-            write(6,'(a,x,a8,2x,a,f5.2,x,a)') "|",trim(label)," -> ",datos,"|"
+            write(6,*) "**************************"
+            write(6,'(a,x,a8,2x,a,e11.4,x,a)') "|",trim(label)," -> ",datos,"|"
 
 
             ! parser
@@ -304,20 +310,63 @@ SUBROUTINE data(a,b,c,d,w,te,tf,tfinal,deltat,n,m)
         PRINT *,""
 
         close(34)
-
-
-
-        ! calcular e,f,g,h,w
-        deltax = long / n
-        deltay = ancho / m
-        a = -dx/deltax**2
-        b = -dy/deltay**2
-        c = 1/deltat
-        d = 1/deltat - 2 * a - 2 * b
-        w = 2 * b * deltay * h / k
-        write(6,'(a,e12.4,a,e12.4,a,e12.4,a,e12.4,a,e12.4,a)') "[A,B,C,D,W] = [",a,", ",b,", ",c,", ",d,", ",w,"]"
+        
     endif
 
+
+    ! pregunta por guardar los datos en un archivo de texto
+    write(6,'(a,/,a,/,a,/,a)') "Desea guardar los datos introducidos?","1) Si","2) No","Introduzca la opcion 1 o 2:"
+    read(5,*) sel
+    if(sel==1) then
+        error = 1
+        do while(error /= 0)
+            write(6,*) "    -> Nombre del archivo? (No olvide la extension):"
+            read(5,*) label
+            open(unit=40, status="new", iostat=error, file=label)
+            if(error == 0) then
+                write(6,*) "            Guardando........"
+                write(40,'(a)',advance="no") "# Los espacios entre la etiqueta, el igual y el numero son importantes. " 
+                write(40,'(a)',advance="no") "No debe haber espacio al principio de la linea. "
+                write(40,'(a)') "El programa pedira los datos que faltan o estan incorrectos. "
+                write(40,*) "n = ",n
+                write(40,*) "m = ",m
+                write(40,*) "Long = ",long
+                write(40,*) "Ancho = ",ancho
+                write(40,*) "Dx = ",dx
+                write(40,*) "Dy = ",dy
+                write(40,*) "h = ",h
+                write(40,*) "K = ",k
+                write(40,*) "Te = ",te
+                write(40,*) "Tf = ",tf
+                write(40,*) "deltaT = ",deltat
+                write(40,*) "Tfinal = ",tfinal
+                close(40)
+            else
+                write(6,'(/,a,/)') "!!!!Hay problemas al guardar el archivo. Comprueba que el archivo no exista antes!!!!"
+                read(5,*)
+            endif
+        enddo
+    endif
+
+
+    ! guardar los datos en el archivo de resultados
+    write(55,*) "################################ " 
+    write(55,*) "#            DATOS             # "
+    write(55,*) "################################ " 
+    write(55,*) "# n = ",n
+    write(55,*) "# m = ",m
+    write(55,*) "# Long = ",long
+    write(55,*) "# Ancho = ",ancho
+    write(55,*) "# Dx = ",dx
+    write(55,*) "# Dy = ",dy
+    write(55,*) "# h = ",h
+    write(55,*) "# K = ",k
+    write(55,*) "# Te = ",te
+    write(55,*) "# Tf = ",tf
+    write(55,*) "# deltaT = ",deltat
+    write(55,*) "# Tfinal = ",tfinal
+    write(55,*) "################################ " 
+    write(55,*) 
 
 END SUBROUTINE
 
@@ -329,9 +378,12 @@ END SUBROUTINE
 
 
 SUBROUTINE generacion_matriz (matriz,a,b,c,d,w,n,m) 
+    IMPLICIT none
     integer,intent(in):: n,m
     real(8),intent(in):: a,b,c,d,w
     real(8),dimension(n*m,2*n+1),intent(inout):: matriz
+    integer:: i,j,k
+    real(8):: sum
     ! ---------------------------------------------------
     ! GENERACION
     ! ---------------------------------------------------
@@ -383,9 +435,11 @@ END SUBROUTINE
 
 
 SUBROUTINE generacion_vector(z,a,b,c,w,te,tf,n,m)
+    IMPLICIT none
     integer,intent(in):: n,m
     real(8),intent(in):: a,b,c,w,te,tf
     real(8), dimension(n*m), intent(inout):: z
+    integer:: i,j
 
 
     do j=1,m
@@ -421,10 +475,12 @@ END SUBROUTINE
 
 
 SUBROUTINE CROUT(matriz,n,m)
+    implicit none
     !variables SUBROUTINE
     integer,intent(in):: n,m
     real(8),dimension(n*m,n*m),intent(inout):: matriz
     integer:: i, j, k, u, l, band
+    real(8):: sum
 
     ! CROUT
     do k=1,n*m-1
@@ -466,12 +522,13 @@ END SUBROUTINE CROUT
 
 
 SUBROUTINE solve(matriz,b,n,m) 
+    IMPLICIT none
     !variables subroutine
     integer,intent(in):: n,m
     real(8),dimension(n*m,2*n+1),intent(in):: matriz
     real(8),dimension(n*m),intent(inout):: b
     integer:: i, j, k, u, l, band
-
+    real(8):: sum
 
     ! system solution
     do i=2,n*m
@@ -495,6 +552,7 @@ END SUBROUTINE
 
 
 SUBROUTINE print_matrix(unit,matriz,n,m)
+    implicit none
     integer,intent(in):: unit,n,m
     real(8),dimension(n*m,2*n+1),intent(in):: matriz
     integer:: i,j
@@ -507,40 +565,22 @@ SUBROUTINE print_matrix(unit,matriz,n,m)
 
 END SUBROUTINE
 
-SUBROUTINE print_vector(unit,vector,n,m)
+SUBROUTINE print_vector(unit,formato,vector,n,m)
+    implicit none
     INTEGER,intent(in):: unit,n,m
     real(8), dimension(n*m), intent(in):: vector
     integer:: i,j,k
+    character(len=*),intent(in):: formato
 
     do j=m,1,-1
         do i=1,n
             k = i + (j-1)*n
-            write(unit,'(f6.2,2x)',advance="no") vector(k)
+            if (formato=="exponential") write(unit,'(e11.4,2x)',advance="no") vector(k)
+            if (formato=="double") write(unit,'(f6.2,2x)',advance="no") vector(k)
         enddo
         write(unit,*)
     enddo
 
     write(unit,*)
-
-END SUBROUTINE
-
-SUBROUTINE write_file(it,vector,n,m)
-    integer,intent(in):: n,m,it
-    real(8), dimension(n*m), intent(in):: vector
-    logical:: existe
-    character(len=20):: archivo="resultados.txt"
-
-    inquire(file=archivo,exist=existe)
-    if(.not. existe) then
-        open(unit=55,file=archivo,status="new")
-        write(55,*) "iteracion ---------------- ",it
-        call print_vector(55,vector,n,m)
-        close(55)
-    else
-        open(unit=55,file=archivo,status="old",access="append")
-        write(55,*) "iteracion ---------------- ",it
-        call print_vector(55,vector,n,m)
-        close(55)
-    endif
 
 END SUBROUTINE

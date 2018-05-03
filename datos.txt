@@ -1,13 +1,13 @@
-# Los espacios entre la etiqueta, el igual y el numero. Importante que no haya espacio al principio de la linea. El programa pedira los datos que faltan o estan incorrectos.
+# Los espacios entre la etiqueta, el igual y el numero son importantes. No debe haber espacio al principio de la linea. El programa pedira los datos que faltan o estan incorrectos.
 Dx = 14.24e-06
 Dy = 14.24e-06
-Long = 6
-Ancho = 4
+Long = 3
+Ancho = 3
 Te = 22
 Tf = 100
 K = 50
 deltaT = 1000
 Tfinal = 10000
-n = 6
-m = 4
-h = 50
+n = 3
+m = 3
+h = 11.79
