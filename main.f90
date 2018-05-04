@@ -53,12 +53,12 @@ PROGRAM Matrices
     ! ---------------------------------------------------
     z(:) = te
     write(6,*) "Temperatura ******* "
-    call print_vector(6,"double",z,n,m)
+    call print_temperatures(6,z,tf,n,m)
     
     call generacion_vector(z,a,b,c,w,te,tf,n,m)
 
     write(6,*) "Vector -------"
-    call print_vector(6,"exponential",z,n,m)
+    call print_vector(6,z,n,m)
     
     write(6,*) 
 
@@ -83,9 +83,9 @@ PROGRAM Matrices
         
 
         write(6,'(a,i6,a,f10.2,a,f10.2)') "Temperaturas -> iteracion i = ",it," -- tiempo = ",deltat*it,"//",tfinal
-        call print_vector(6,"double",z,n,m)
+        call print_temperatures(6,z,tf,n,m)
         write(55,*) "-> iteracion ---------",it
-        call print_vector(55,"double",z,n,m)
+        call print_temperatures(55,z,tf,n,m)
 
         CALL generacion_vector(z,a,b,c,w,te,tf,n,m)
 
@@ -551,6 +551,10 @@ SUBROUTINE solve(matriz,b,n,m)
 END SUBROUTINE
 
 
+
+
+
+
 SUBROUTINE print_matrix(unit,matriz,n,m)
     implicit none
     integer,intent(in):: unit,n,m
@@ -565,22 +569,57 @@ SUBROUTINE print_matrix(unit,matriz,n,m)
 
 END SUBROUTINE
 
-SUBROUTINE print_vector(unit,formato,vector,n,m)
+
+
+
+
+
+SUBROUTINE print_vector(unit,vector,n,m)
     implicit none
     INTEGER,intent(in):: unit,n,m
     real(8), dimension(n*m), intent(in):: vector
     integer:: i,j,k
-    character(len=*),intent(in):: formato
 
-    do j=m,1,-1
+
+
+    do j=m,2,-1
         do i=1,n
             k = i + (j-1)*n
-            if (formato=="exponential") write(unit,'(e11.4,2x)',advance="no") vector(k)
-            if (formato=="double") write(unit,'(f6.2,2x)',advance="no") vector(k)
+            write(unit,'(e11.4,2x)',advance="no") vector(k)
         enddo
         write(unit,*)
     enddo
 
+    write(unit,*)
+
+END SUBROUTINE
+
+
+
+
+
+
+
+SUBROUTINE print_temperatures(unit,vector,tf,n,m)
+    implicit none
+    INTEGER,intent(in):: unit,n,m
+    real(8), dimension(n*m), intent(in):: vector
+    real(8), intent(in):: tf
+    integer:: i,j,k
+
+    write(unit,'(*(f6.2,2x))') (tf,j=1,n)
+
+    do j=m,2,-1
+        do i=1,n
+            k = i + (j-1)*n
+            if(i==1) then 
+                 write(unit,'(f6.2,2x)',advance="no") tf
+            else
+                write(unit,'(f6.2,2x)',advance="no") vector(k)
+            endif
+        enddo
+        write(unit,*)
+    enddo
     write(unit,*)
 
 END SUBROUTINE
