@@ -94,13 +94,13 @@ PROGRAM Matrices
 
 
     
-    
-
+    write(6,*) "Ejecutando programa para mostrar resultados graficos."
+    call execute_command_line("python grapher.py resultados.txt", wait=.false.)
 
 
 
     ! THE END
-
+    write(6,'(/,a,/,a)') "Gracias por usar el programa....."," Pulse ENTER para salir."
     read(5,*)
 
 
@@ -353,10 +353,10 @@ SUBROUTINE data(long,ancho,h,k,dx,dy,te,tf,tfinal,deltat,n,m)
     write(55,*) "################################ " 
     write(55,*) "#            DATOS             # "
     write(55,*) "################################ " 
-    write(55,*) "# n = ",n
-    write(55,*) "# m = ",m
-    write(55,*) "# Long = ",long
-    write(55,*) "# Ancho = ",ancho
+    write(55,*) "* n = ",n
+    write(55,*) "* m = ",m
+    write(55,*) "* Long = ",long
+    write(55,*) "* Ancho = ",ancho
     write(55,*) "# Dx = ",dx
     write(55,*) "# Dy = ",dy
     write(55,*) "# h = ",h
@@ -582,7 +582,7 @@ SUBROUTINE print_vector(unit,vector,n,m)
 
 
 
-    do j=m,2,-1
+    do j=m,1,-1
         do i=1,n
             k = i + (j-1)*n
             write(unit,'(e11.4,2x)',advance="no") vector(k)
@@ -607,16 +607,15 @@ SUBROUTINE print_temperatures(unit,vector,tf,n,m)
     real(8), intent(in):: tf
     integer:: i,j,k
 
-    write(unit,'(*(f6.2,2x))') (tf,j=1,n)
+    write(unit,'(*(f6.2,2x))') (tf,j=1,n+1)
 
-    do j=m,2,-1
+    do j=m,1,-1
         do i=1,n
             k = i + (j-1)*n
             if(i==1) then 
                  write(unit,'(f6.2,2x)',advance="no") tf
-            else
-                write(unit,'(f6.2,2x)',advance="no") vector(k)
             endif
+            write(unit,'(f6.2,2x)',advance="no") vector(k)
         enddo
         write(unit,*)
     enddo
