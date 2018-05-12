@@ -1,13 +1,13 @@
 # Los espacios entre la etiqueta, el igual y el numero son importantes. No debe haber espacio al principio de la linea. El programa pedira los datos que faltan o estan incorrectos.
-Dx = 1.4245e-05
-Dy = 1.4245e-05
-Long = 10
-Ancho = 10
+Dx = 1e-4
+Dy = 1e-4
+Long = 2
+Ancho = 2
 Te = 273
 Tf = 373
-K = 205
-deltaT = 1
-Tfinal = 720
-n = 10
-m = 10
-h = 5
+K = 300
+deltaT = 60
+Tfinal = 7200
+n = 3
+m = 3
+h = 20

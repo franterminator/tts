@@ -466,7 +466,6 @@ SUBROUTINE generacion_vector(z,a,b,c,w,te,tf,n,m)
     enddo
 
 
-
 END SUBROUTINE
 
 
