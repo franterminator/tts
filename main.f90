@@ -181,17 +181,17 @@ SUBROUTINE data(long,ancho,h,k,dx,dy,te,tf,tfinal,deltat,n,m)
         print *,"-----------------------------------------------------------"
         print *,"**************      TEMPERATURAS      *********************"
         print *,"-----------------------------------------------------------"
-        write(6,'(a)',advance="no") " -> temperatura exterior [grados Celsius] = "
+        write(6,'(a)',advance="no") " -> temperatura exterior [grados Kelvin] = "
         read(5,*) te
-        write(6,'(a)',advance="no") " -> temperatura fuente [grados Celsius] = "
+        write(6,'(a)',advance="no") " -> temperatura fuente [grados Kelvin] = "
         read(5,*) tf
-        write(6,'(a)',advance="no") " -> coeficiente  de disipacion (h) = "
+        write(6,'(a)',advance="no") " -> coeficiente  de transmision superficial [W/m2 K] (h) = "
         read(5,*) h
-        write(6,'(a)',advance="no") " -> constante termica (k) = "
+        write(6,'(a)',advance="no") " -> conductividad termica [W/m K] (k) = "
         read(5,*) k
-        write(6,'(a)',advance="no") " -> coef de difusion a lo largo (dx) = "
+        write(6,'(a)',advance="no") " -> coef de difusion a lo largo [m/s2] (dx) = "
         read(5,*) dx
-        write(6,'(a)',advance="no") " -> coef de difusion a lo ancho (dy) = "
+        write(6,'(a)',advance="no") " -> coef de difusion a lo ancho [m/s2] (dy) = "
         read(5,*) dy
 
         print *,"-----------------------------------------------------------"
