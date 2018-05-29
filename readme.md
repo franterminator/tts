@@ -12,11 +12,24 @@ En el repositorio se encuentra el codigo fuente del programa. Para compilarlo se
 
 Junto al programa principal vienen incluidos un par de programas en python que sirven para representar graficamente los resultados del programa. Estan escritos en Python 3.x, por lo que es necesario tener instalado Python 3 para poder trabajar con estos programas. Otro requisito para poder usar estos programas es tener instalado la libería de [Matplotlib](https://matplotlib.org/users/installing.html#installing-an-official-release), la cual es facil de instalar con PIP.
 
-Como dije antes, estos programas son una buena opción para obtener resultados visuales, pero no son la única. El programa en FORTRAN devuelve los resultados de las iteraciones en un archivo llamado [resultados.txt](#Resultados), el cual se puede abrir con hojas de calculo como Excel y representar los valores en gráficas.
+Como dije antes, estos programas son una buena opción para obtener resultados visuales, pero no son la única. El programa en FORTRAN devuelve los resultados de las iteraciones en un archivo llamado [resultados.txt](https://github.com/franterminator/tts#resultados), el cual se puede abrir con hojas de calculo como Excel y representar los valores en gráficas.
+
+## Inputs
+Los inputs son los datos que necesita el programa para hayar los resultados, es decir, la temperatura de la placa en un instante determinado. En la siguiente tabla se recogen toda esta información que se debe suministrar al programa:
+
+| Nombre  | Descripción                                   | Unidades (SI) |
+| ------- |-----------------------------------------------|:-------------:|
+| n       | Numero de puntos de discretización horizontal |               |
+| m       | Numero de puntos de discretización vertical   |               |
+| L       | Longitud de la placa                          | m             |
+| A       | Ancho de la placa                             | n             |
+
 
 ## Resultados
 La temperatura en cada punto e iteración de la placa son escritos en un archivo de texto plano llamado resultados.txt.
 
 El formato de este archivo es como sigue:
-![Formato del archivo resultados.txt](https://github.com/franterminator/tts/blob/master/esquemas/placa_metalica.png)
+![Formato del archivo resultados.txt](https://github.com/franterminator/tts/blob/master/esquemas/formato_resultados_edited.png)
+
+Es importante fijarse en los datos de la placa, 
 
