@@ -10,6 +10,7 @@ import numpy as np
 
 resultsfilename = "resultados.txt"
 filesavename = sys.argv[1]
+plotsavename = sys.argv[2]
 
 
 
@@ -31,7 +32,7 @@ def read_points():
 			user_points.append(points)
 			print("["+str(points[0])+","+str(points[1])+"]")
 		else:
-			print("skipping")
+			print("no more points -> just run !!!")
 		i += 1
 
 	return user_points
@@ -49,6 +50,9 @@ with open(resultsfilename) as f:
 	# z values (temperatures)
 	z = []
 
+	# temperature in points
+	pointTemp = [[] for i in range(len(puntos))]
+
 	# read file line by line
 	for line in f:
 		# jump comments line
@@ -64,9 +68,16 @@ with open(resultsfilename) as f:
 					iteracion = int(tokens[-1]) - 1
 
 					if len(z) > 0:
-						for punto in puntos:
-							w.write('{:<15f}  '.format(z[punto[0]][punto[1]]))
-						w.write("\n")
+						try:
+							for i in range(len(puntos)):
+								punto = puntos[i]
+								pointTemp[i].append(z[punto[0]][punto[1]])
+							for punto in puntos:
+								w.write('{:<15f}  '.format(z[punto[0]][punto[1]]))
+							w.write("\n")
+						except(IndexError):
+							print("CHAVAL NO ME CHINGUES COGIENDO PUNTOS FUERA DE LA PLACA")
+							sys.exit(1)
 						z = []
 				else:
 					# read the matrix of temperatures
@@ -78,8 +89,23 @@ with open(resultsfilename) as f:
 
 					z.append(fila)
 	if len(z) > 0:
+		# last iteration 
 		for punto in puntos:
 			w.write('{:<15f}  '.format(z[punto[0]][punto[1]]))
 		z = []
 		
 	w.close()
+
+	# printing and saving fig
+	for i in range(len(puntos)):
+		punto = puntos[i]
+		name = "Punto [{:d},{:d}]  ".format(punto[0],punto[1])
+		plt.plot(pointTemp[i], label=name)
+
+	legend = plt.legend(bbox_to_anchor=(0.97,1.0))
+	plt.ylabel("Temperatura [Kelvin]")
+	plt.xlabel("Step")
+	titulo = input("\n Titulo del grafico :: ")
+	plt.title(titulo,fontsize=14, fontweight='bold')
+	plt.savefig(plotsavename, bbox_extra_artists=(legend,), bbox_inches='tight')
+	print("Se a creado un grafica con los datos en el archivo -> "+plotsavename)

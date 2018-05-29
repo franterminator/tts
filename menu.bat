@@ -34,5 +34,5 @@ magick @filenames_step.txt resultados.gif
 GOTO MENU
 
 :POINTTRACK
-python pointtrack.py img/points_track.txt
+python pointtrack.py img/points_track.txt img/pointsTrack.png
 GOTO MENU
