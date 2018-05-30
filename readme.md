@@ -17,12 +17,25 @@ Como dije antes, estos programas son una buena opción para obtener resultados v
 ## Inputs
 Los inputs son los datos que necesita el programa para hayar los resultados, es decir, la temperatura de la placa en un instante determinado. En la siguiente tabla se recogen toda esta información que se debe suministrar al programa:
 
-| Nombre  | Descripción                                   | Unidades (SI) |
-| ------- |-----------------------------------------------|:-------------:|
-| n       | Numero de puntos de discretización horizontal |               |
-| m       | Numero de puntos de discretización vertical   |               |
-| L       | Longitud de la placa                          | m             |
-| A       | Ancho de la placa                             | n             |
+| Dimensiones de la placa | Descripcion                                                | Unidades (SI) |
+|:-----------------------:|------------------------------------------------------------|----------|
+| Nombre                  | Descripción                                                | Unidades |
+| n                       | Número de puntos en el largo de la placa                   |          |
+| m                       | Número de puntos en el ancho de la placa                   |          |
+| long                    | Longitud de la placa                                       | m        |
+| ancho                   | Ancho de la placa                                          | m        |
+|   Propiedades térmicas  |                                                            |          |
+| Nombre                  | Descripción                                                | Unidades |
+| Te                      | Temperatura exterior o temperatura del medio en contacto   | K        |
+| Tf                      | Temperatura de la fuente de calor                          | K        |
+| h                       | Coeficiente de transmisión superficial                     | W/m2 K   |
+| k                       | Conductividad térmica                                      | W/m K    |
+| Dx                      | Coeficiente de difusión en dirección x (largo de la placa) | m/s2     |
+| Dy                      | Coeficiente de difusión en dirección y (ancho de la placa) |          |
+|    Tiempo de cálculo    |                                                            |          |
+| Nombre                  | Descripción                                                | Unidades |
+| deltaT                  | incremento de tiempo en cada iteración                     | s        |
+| Tfinal                  | en que tiempo se para el cálculo                           | s        |
 
 
 ## Resultados

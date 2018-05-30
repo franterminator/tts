@@ -1,24 +1,39 @@
-PROGRAM Matrices
-    IMPLICIT NONE
-    ! bucles
-    INTEGER :: i, j, p, it
-    !factorizacion
-    integer:: n, m, u, l, band
-    real(8):: sum
-    ! resolucion matriz
-    REAL(8), dimension(:,:), allocatable :: matriz
-    real(8), dimension(:), allocatable:: z
-    ! datos
-    real(8):: deltax,deltay,a,b,c,d,w
-    real(8):: long,ancho,h,k,dx,dy,te,tf,deltat,tfinal
+
+! El programa TTS (Temperature Time Solver) calcula la temperatura de una placa en contacto con una fuente de calor en cada instante de tiempo. 
+! El usuario puede definir las propiedades de la placa, temperatura de la fuente, temperatura del medio exterior y tiempos de cálculo deseados.
+
+PROGRAM TTS
+	! ----------------------------------------------------------------------------------------------------- VARIABLES
+
+    IMPLICIT NONE !elimina las variables implicitas
+
+    INTEGER :: it 			!guarda la iteracion 
+    integer:: n, m 			!numero de puntos a lo largo y a lo ancho
+    integer:: u, l, band 	!matriz en banda
+    					  	!band -> tamaño de banda
+    					  	!u(i) -> funcion que devuelve la posición de banda superior
+    					  	!l(i) -> funcion que devuelve la posicion de la banda inferior 
+
+    REAL(8), dimension(:,:), allocatable :: matriz 	!matriz con las ecuaciones del sistema
+    real(8), dimension(:), allocatable:: z			!vector de terminos independientes    
+    real(8):: a,b,c,d,W 								!elementos de la matriz
+    real(8):: deltax,deltay					!separacion entre los puntos a lo largo (x) y a lo ancho(y)
+
+    ! datos del programa
+    real(8):: long,ancho 					!dimensiones de la placa
+    real(8):: h 							!coef de transmision superficial
+    real(8):: k 							!conductividad termica
+    real(8):: dx,dy 						!coef de difusividad en x e y
+    real(8):: te,tf 						!temperatura medio exterior y fuente de calor
+    real(8):: deltat,tfinal 				!intervalos de tiempo y tiempo final
 
 
+	! ----------------------------------------------------------------------------------------------------- PROGRAMA
 
-
-    ! open result file
+    ! abrimos el archivo de resultados
     open(unit=55,file="resultados.txt",status="replace")
 
-    ! get the data form user
+    ! pedimos al usuario o leemos de un archivo los datos de entrada
     call data(long,ancho,h,k,dx,dy,te,tf,tfinal,deltat,n,m)
 
     ! calcular a,b,c,d,w
@@ -35,65 +50,72 @@ PROGRAM Matrices
     WRITE(6,'(a,i2,a,i2)') "Los datos introducidos son: ",n," // ",m
 
 
-    !allocate de matrix
+    ! reservamos memoria para las matrices
     allocate(matriz(n*m,2*n+1), z(n*m))
 
     ! ---------------------------------------------------
     ! GENERACION MATRIZ
     ! ---------------------------------------------------
 
-    call generacion_matriz(matriz,a,b,c,d,w,n,m)
+    call generacion_matriz(matriz,a,b,c,d,w,n,m)	!coloca los coeficientes de la matriz en su sitio
 
     write(6,*) "Matriz -------"
-    call print_matrix(6,matriz,n,m)
+    call print_matrix(6,matriz,n,m) 				!imprime las coeficientes de la matriz
 
 
     ! ---------------------------------------------------
     ! GENERACION VECTOR INDEPENDIENTES
     ! ---------------------------------------------------
-    z(:) = te
+    z(:) = te 										!inicialmente la placa esta a temperatura exterior
     write(6,*) "Temperatura ******* "
-    call print_temperatures(6,z,tf,n,m)
+    call print_temperatures(6,z,tf,n,m)		 		!imprime la temperatura de la placa
     
-    call generacion_vector(z,a,b,c,w,te,tf,n,m)
+    call generacion_vector(z,a,b,c,w,te,tf,n,m)		!calcula y coloca los coeficientes de terminos independientes en su sitio
 
     write(6,*) "Vector -------"
-    call print_vector(6,z,n,m)
+    call print_vector(6,z,n,m)						!imprime el vector con un formato exponencial
     
     write(6,*) 
 
     ! ---------------------------------------------------
     ! FACTORIZACION
     ! ---------------------------------------------------
+    
     CALL CROUT(matriz,n,m)
 
     ! print the matrix after crout
-    write(6,*) "*********** After crout"
+    write(6,*) "*********** Matriz factorizada"
     write(6,*) "MATRIX ->"
     call print_matrix(6,matriz,n,m)
 
 
     ! ---------------------------------------------------
-    ! SOLVE
+    ! RESOLUCION DEL SISTEMA
     ! ---------------------------------------------------
     
     it = 1
-    do while(deltat*it <= tfinal)
-        CALL SOLVE(matriz,z,n,m)
-        
 
+    ! resuelve el sistema hasta que se alcance el tiempo indicado por el usuario
+    do while(deltat*it <= tfinal)
+    	! resuelve el sistema
+        CALL SOLVE(matriz,z,n,m)
+
+        ! imprime en pantalla los resultados
         write(6,'(a,i6,a,f10.2,a,f10.2)') "Temperaturas -> iteracion i = ",it," -- tiempo = ",deltat*it,"//",tfinal
         call print_temperatures(6,z,tf,n,m)
+        ! imprime en archivo los resultados
         write(55,*) "-> iteracion ---------",it
         call print_temperatures(55,z,tf,n,m)
 
+        ! regenera el vector con las nuevas temperaturas
         CALL generacion_vector(z,a,b,c,w,te,tf,n,m)
 
+        ! siguiente iteracion
         it = it + 1
     enddo
 
 
-    
+    ! opcional para ejecutar el programa grapher.py desde fortran
     write(6,*) "Ejecutando programa para mostrar resultados graficos."
     call execute_command_line("python grapher.py resultados.txt", wait=.false.)
 
@@ -105,7 +127,12 @@ PROGRAM Matrices
 
 
     
-END PROGRAM
+END PROGRAM TTS
+
+
+
+
+! ----------------------------------------------------------------------------------------------------- SUBROUTINAS Y FUNCIONES
 
 
 
@@ -113,12 +140,7 @@ END PROGRAM
 
 
 
-
-
-
-
-
-
+! 
 INTEGER FUNCTION l(i,n)
     integer:: i,n
     l = min(n,i-1)
