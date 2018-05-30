@@ -10,7 +10,7 @@ PROGRAM TTS
     INTEGER :: it 			!guarda la iteracion 
     integer:: n, m 			!numero de puntos a lo largo y a lo ancho
     integer:: u, l, band 	!matriz en banda
-    					  	!band -> tamaño de banda
+    					  	!band -> transformacion de matriz ordinaria a matriz en banda
     					  	!u(i) -> funcion que devuelve la posición de banda superior
     					  	!l(i) -> funcion que devuelve la posicion de la banda inferior 
 
@@ -116,8 +116,8 @@ PROGRAM TTS
 
 
     ! opcional para ejecutar el programa grapher.py desde fortran
-    write(6,*) "Ejecutando programa para mostrar resultados graficos."
-    call execute_command_line("python grapher.py resultados.txt", wait=.false.)
+    !write(6,*) "Ejecutando programa para mostrar resultados graficos."
+    !call execute_command_line("python grapher.py resultados.txt", wait=.false.)
 
 
 
@@ -140,7 +140,17 @@ END PROGRAM TTS
 
 
 
-! 
+! **********************************************************************************
+! FUNCION l(i,n)
+! ---------> Argumentos:
+!               i : posicion de un elemento de la diagonal
+!               n : ancho de la matriz
+! Descripcion:
+! 	devuelve la posicion de la banda inferior para un elemento de la diagonal i
+!
+! ---------> Devuelve:
+!               l : la posicion de la banda inferior 
+! **********************************************************************************
 INTEGER FUNCTION l(i,n)
     integer:: i,n
     l = min(n,i-1)
@@ -149,6 +159,19 @@ END FUNCTION
 
 
 
+
+
+! **********************************************************************************
+! FUNCION u(j,n)
+! ---------> Argumentos:
+!               j : posicion de un elemento de la diagonal
+!               n : ancho de la matriz
+! Descripcion:
+! 	devuelve la posicion de la banda superior para un elemento de la diagonal i
+!
+! ---------> Devuelve:
+!               l : la posicion de la banda superior 
+! **********************************************************************************
 FUNCTION u(j,n)
     integer:: u,j,n
     u = min(n,j-1)
@@ -157,6 +180,21 @@ END FUNCTION
 
 
 
+
+
+! **********************************************************************************
+! FUNCION band(i,j,n)
+! ---------> Argumentos:
+!               i : elemento i de la matriz 
+!               j : elemento j de la matriz
+!               n : ancho de la matriz
+! Descripcion:
+! 	datos los indices de una matriz en banda i y j, obtienes el indice j de la 
+!	matriz en banda correspondiente
+! 
+! ---------> Devuelve:
+!               band : la j de la matriz en banda
+! **********************************************************************************
 FUNCTION band(i,j,n)
     integer:: band,i,j,n
     band = (j-i)+n+1
@@ -166,16 +204,41 @@ END FUNCTION
 
 
 
+
+
+
+
+! **********************************************************************************
+! SUBROUTINE data(long,ancho,h,k,dx,dy,te,tf,tfinal,deltat,n,m)
+! ---------> Argumentos:
+!             * long   : longitud de la placa
+!             * ancho  : ancho de la placa
+!             * h      : coef de transmision superficial
+!             * k      : conductividad termica
+!             * dx     : coef de difusividad en x (largo)
+!             * dy     : coef de difusividad en y (ancho)
+!             * te     : temperatura del medio exterior
+!             * tf     : temperatura de la fuente de calor
+!             * tfinal : tiempo final de cálculo
+!             * deltat : avance de tiempo en cada iteracion
+!             * n      : numero de puntos en x
+!             * m      : numero de puntos en y
+! Descipcion:
+! 	pide al usuario los datos o los lee de un archivo de datos y los devuelve 
+!	al programa principal
+!
+! **********************************************************************************
 SUBROUTINE data(long,ancho,h,k,dx,dy,te,tf,tfinal,deltat,n,m)
     IMPLICIT none
-    character(len=100):: option
-    character(len=32):: label, equal
+    character(len=100):: option			!opciones de ejecuccion	
+    character(len=32):: label, equal 	!etiquetas y simbolo igual del arhivo de datos de entrada
     real(8),intent(inout):: long,ancho,h,k,dx,dy,te,tf,tfinal,deltat
     integer,intent(inout):: n,m
     real(8):: datos
-    integer:: sel
-    integer:: error=0
+    integer:: sel 						!elecciones del usuario en los menus
+    integer:: error=0					!errores de lectura/escritura del archivo 
 
+    ! iniciacion de las variables
     long=-1; ancho=-1;
     h=-1; k=-1; dx=-1; dy=-1
     deltat=-1; tfinal=-1
@@ -186,6 +249,7 @@ SUBROUTINE data(long,ancho,h,k,dx,dy,te,tf,tfinal,deltat,n,m)
     call getarg(1,option)
 
     if(option == "") then
+
         !pide los datos al usuario
         print *,"Introduzca los datos necesarios para ejecutar el programa: "
         print *,"---------- -------------------------------------------------"
@@ -225,17 +289,23 @@ SUBROUTINE data(long,ancho,h,k,dx,dy,te,tf,tfinal,deltat,n,m)
         read(5,*) tfinal
 
     else
+
         ! lee el archivo y pide los datos que faltan al usuario
         print *,"Se ha encontrado un archivo -> ",option
         open(unit=34, status="old", file=option)
 
         !LECTURA DEL ARCHIVO
-        !primera linea comentario
+        ! se lee la primera linea del archivo y se descarta (linea comentario)
         read(34,*,iostat=error) label
 
         !lectura de datos
+        ! se lee linea por linea hasta error o fin del programa
         do while (error==0)
+
+        	! formato del archivo 
             ! texto = valor
+
+            ! se lee cada linea
             read(34,*,iostat=error) label,equal,datos
             ! escupe los datos
             write(6,*) "**************************"
@@ -271,7 +341,7 @@ SUBROUTINE data(long,ancho,h,k,dx,dy,te,tf,tfinal,deltat,n,m)
         end do !fin de bucle lectura de datos
 
 
-
+        ! puede que el archivo de datos este corrupto o falten datos, se pide al usuario lo que falta
         print *,"-----------------------------------------------------------"
         print *,"         -> SI FALTA ALGUN DATO SE PIDE A CONTINUACION"
         print *,"-----------------------------------------------------------"
@@ -331,7 +401,7 @@ SUBROUTINE data(long,ancho,h,k,dx,dy,te,tf,tfinal,deltat,n,m)
         print *,"-----------------------------------------------------------"
         PRINT *,""
 
-        close(34)
+        close(34) ! cierre del archivo con los datos de entrada
         
     endif
 
@@ -339,12 +409,22 @@ SUBROUTINE data(long,ancho,h,k,dx,dy,te,tf,tfinal,deltat,n,m)
     ! pregunta por guardar los datos en un archivo de texto
     write(6,'(a,/,a,/,a,/,a)') "Desea guardar los datos introducidos?","1) Si","2) No","Introduzca la opcion 1 o 2:"
     read(5,*) sel
+    ! se guarda el archivo
+
     if(sel==1) then
-        error = 1
-        do while(error /= 0)
+        error = 1	! posibles errores de i/o
+
+        ! se escribe en el archivo hasta que haya error o se llegue al final del archivo
+        do while(error /= 0) 
+
+        	! se pide el nombre del archivo al usuario
             write(6,*) "    -> Nombre del archivo? (No olvide la extension):"
             read(5,*) label
+
+            ! se abre y crea el archivo
             open(unit=40, status="new", iostat=error, file=label)
+
+            ! si se ha abierto, se escriben los datos de entrada
             if(error == 0) then
                 write(6,*) "            Guardando........"
                 write(40,'(a)',advance="no") "# Los espacios entre la etiqueta, el igual y el numero son importantes. " 
@@ -399,13 +479,25 @@ END SUBROUTINE
 
 
 
+
+
+! **********************************************************************************
+! SUBROUTINE generacion_matriz(matriz,a,b,c,d,w,n,m)
+! ---------> Argumentos:
+!             * matriz    : matriz con los coeficientes del sistema de ecuaciones
+!               a,b,c,d,w : elementos de la matriz
+!               n         : numero de puntos en x
+!               m         : numero de puntos en y
+! Descipcion:
+! 	coloca los elementos de la matriz en su posicion
+!
+! **********************************************************************************
 SUBROUTINE generacion_matriz (matriz,a,b,c,d,w,n,m) 
     IMPLICIT none
     integer,intent(in):: n,m
     real(8),intent(in):: a,b,c,d,w
     real(8),dimension(n*m,2*n+1),intent(inout):: matriz
-    integer:: i,j,k
-    real(8):: sum
+    integer:: i,j 	!variables de bucle
     ! ---------------------------------------------------
     ! GENERACION
     ! ---------------------------------------------------
@@ -456,12 +548,26 @@ END SUBROUTINE
 
 
 
+
+! **********************************************************************************
+! SUBROUTINE generacion_vector(z,a,b,c,w,te,tf,n,m)
+! ---------> Argumentos:
+!             * z       : vector con los terminos independientes del sistema
+!               a,b,c,w : elementos de la matriz de coeficientes
+!               te     : temperatura del medio exterior
+!               tf     : temperatura de la fuente de calor
+!               n       : numero de puntos en x
+!               m       : numero de puntos en y
+! Descipcion:
+! 	calcula y coloca los elementos del vecto de independientes en su posicion
+!
+! **********************************************************************************
 SUBROUTINE generacion_vector(z,a,b,c,w,te,tf,n,m)
     IMPLICIT none
     integer,intent(in):: n,m
     real(8),intent(in):: a,b,c,w,te,tf
     real(8), dimension(n*m), intent(inout):: z
-    integer:: i,j
+    integer:: i,j 	!variables de bucle
 
 
     do j=1,m
@@ -495,13 +601,24 @@ END SUBROUTINE
 
 
 
+
+! **********************************************************************************
+! SUBROUTINE CROUT(matriz,n,m)
+! ---------> Argumentos:
+!             * matriz : matriz con los coeficientes del sistema de ecuaciones
+!               n      : numero de puntos en x
+!               m      : numero de puntos en y
+! Descipcion:
+! 	factoriza mediante el metodo de crout la matriz del sistema
+!
+! **********************************************************************************
 SUBROUTINE CROUT(matriz,n,m)
-    implicit none
-    !variables SUBROUTINE
+    IMPLICIT none
     integer,intent(in):: n,m
     real(8),dimension(n*m,n*m),intent(inout):: matriz
-    integer:: i, j, k, u, l, band
-    real(8):: sum
+    integer:: i, j, k 		!variables de bucles
+    integer:: u, l, band 	!funcion posicion banda inferior, posicion banda superior y transformacion matriz en banda
+    real(8):: sum 			!sumatorios en el algoritmo de crout
 
     ! CROUT
     do k=1,n*m-1
@@ -542,16 +659,31 @@ END SUBROUTINE CROUT
 
 
 
+
+
+
+! **********************************************************************************
+! SUBROUTINE solve(matriz,b,n,m)
+! ---------> Argumentos:
+!               matriz : matriz con los coeficientes del sistema de ecuaciones
+!               b      : vector de terminos independientes del sistema original
+!               n      : numero de puntos en x
+!               m      : numero de puntos en y
+! Descipcion:
+! 	resuelve el sistema factorizado por crout
+!
+! **********************************************************************************
 SUBROUTINE solve(matriz,b,n,m) 
     IMPLICIT none
-    !variables subroutine
     integer,intent(in):: n,m
     real(8),dimension(n*m,2*n+1),intent(in):: matriz
     real(8),dimension(n*m),intent(inout):: b
-    integer:: i, j, k, u, l, band
-    real(8):: sum
+    integer:: i, j, k 		!variables de bucles
+    integer:: u, l, band 	!funcion posicion banda inferior, posicion banda superior y transformacion matriz en banda
+    real(8):: sum 			!sumatorios en el algoritmo de resolucion del sistema
 
-    ! system solution
+    ! resolucion del sistema
+    ! L * z = c
     do i=2,n*m
         sum = 0
         do j=i-l(i,n),i-1
@@ -560,15 +692,18 @@ SUBROUTINE solve(matriz,b,n,m)
         b(i) = b(i) - sum
     enddo
 
+    ! D * y = z
     do i=1,n*m
         b(i) = b(i) / matriz(i,band(i,i,n))
     enddo
 
+    ! U * x = y
     do i=n*m,2,-1
         do j=i-u(i,n),i-1
             b(j) = b(j) - matriz(j,band(j,i,n)) * b(i)
         enddo
     enddo
+
 END SUBROUTINE
 
 
@@ -576,17 +711,28 @@ END SUBROUTINE
 
 
 
+! **********************************************************************************
+! SUBROUTINE print_matrix(unit,matriz,n,m)
+! ---------> Argumentos:
+!               unit   : unidad de lectura/escritura
+!               matriz : matriz con los coeficientes del sistema de ecuaciones
+!               n      : numero de puntos en x
+!               m      : numero de puntos en y
+! Descipcion:
+! 	escribe en la unidad indica la matriz con formato exponencial
+!
+! **********************************************************************************
 SUBROUTINE print_matrix(unit,matriz,n,m)
     implicit none
     integer,intent(in):: unit,n,m
     real(8),dimension(n*m,2*n+1),intent(in):: matriz
-    integer:: i,j
+    integer:: i,j 	!variables de los bucles
     
     do i=1,n*m
-        write(unit,'(*(e10.4,2x))') (matriz(i,j),j=1,2*n+1)
+        write(unit,'(*(e10.4,2x))') (matriz(i,j),j=1,2*n+1) !loop implicit
     enddo
 
-    write(unit,*)
+    write(unit,*) !salto de linea
 
 END SUBROUTINE
 
@@ -595,23 +741,36 @@ END SUBROUTINE
 
 
 
+
+! **********************************************************************************
+! SUBROUTINE print_vector(unit,vector,n,m)
+! ---------> Argumentos:
+!               unit   : unidad de lectura/escritura
+!               vector : vector de terminos independientes
+!               n      : numero de puntos en x
+!               m      : numero de puntos en y
+! Descipcion:
+! 	escribe en la unidad indica el vector de terminos independientes
+!	en formato exponencial
+!
+! **********************************************************************************
 SUBROUTINE print_vector(unit,vector,n,m)
     implicit none
     INTEGER,intent(in):: unit,n,m
     real(8), dimension(n*m), intent(in):: vector
-    integer:: i,j,k
+    integer:: i,j,k 	!variables de los bucles
 
 
-
+    ! imprime los puntos de la placa de arriba a abajo
     do j=m,1,-1
         do i=1,n
             k = i + (j-1)*n
-            write(unit,'(e11.4,2x)',advance="no") vector(k)
+            write(unit,'(e11.4,2x)',advance="no") vector(k) !advance = no, asi no hace salto de linea al acabar de escribir
         enddo
         write(unit,*)
     enddo
 
-    write(unit,*)
+    write(unit,*) !salto de linea
 
 END SUBROUTINE
 
@@ -620,26 +779,44 @@ END SUBROUTINE
 
 
 
-
+! **********************************************************************************
+! SUBROUTINE print_temperatures(unit,vector,tf,n,m)
+! ---------> Argumentos:
+!               unit   : unidad de lectura/escritura
+!               vector : vector de terminos independientes
+!               tf     : temperatura de la fuente de calor
+!               n      : numero de puntos en x
+!               m      : numero de puntos en y
+! Descipcion:
+! 	escribe en la unidad indica el las temperaturas de la placa en cada punto
+!	en formato doble
+!
+! **********************************************************************************
 SUBROUTINE print_temperatures(unit,vector,tf,n,m)
     implicit none
     INTEGER,intent(in):: unit,n,m
     real(8), dimension(n*m), intent(in):: vector
     real(8), intent(in):: tf
-    integer:: i,j,k
+    integer:: i,j,k !variables de los bucles
 
+    ! lateral superior
     write(unit,'(*(f6.2,2x))') (tf,j=1,n+1)
 
+    ! imprime los puntos de la placa de arriba a abajo
     do j=m,1,-1
         do i=1,n
             k = i + (j-1)*n
+
             if(i==1) then 
-                 write(unit,'(f6.2,2x)',advance="no") tf
+            	! lateral izquierdo
+                write(unit,'(f6.2,2x)',advance="no") tf 	!advance = no, asi no hace salto de linea al acabar de escribir
             endif
-            write(unit,'(f6.2,2x)',advance="no") vector(k)
+
+            ! resto de puntos de la placa
+            write(unit,'(f6.2,2x)',advance="no") vector(k) 	
         enddo
-        write(unit,*)
+        write(unit,*) 	!salto de linea
     enddo
-    write(unit,*)
+    write(unit,*)		!salto de linea
 
 END SUBROUTINE
