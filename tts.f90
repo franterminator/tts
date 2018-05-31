@@ -11,7 +11,7 @@ PROGRAM TTS
     integer:: n, m 			!numero de puntos a lo largo y a lo ancho
     integer:: u, l, band 	!matriz en banda
     					  	!band -> transformacion de matriz ordinaria a matriz en banda
-    					  	!u(i) -> funcion que devuelve la posición de banda superior
+    					  	!u(i) -> funcion que devuelve la posicion de banda superior
     					  	!l(i) -> funcion que devuelve la posicion de la banda inferior 
 
     REAL(8), dimension(:,:), allocatable :: matriz 	!matriz con las ecuaciones del sistema
@@ -146,7 +146,7 @@ END PROGRAM TTS
 !               i : posicion de un elemento de la diagonal
 !               n : ancho de la matriz
 ! Descripcion:
-! 	devuelve la posicion de la banda inferior para un elemento de la diagonal i
+! 	devuelve la posicion de la banda inferior para un elemento i de la diagonal
 !
 ! ---------> Devuelve:
 !               l : la posicion de la banda inferior 
@@ -167,7 +167,7 @@ END FUNCTION
 !               j : posicion de un elemento de la diagonal
 !               n : ancho de la matriz
 ! Descripcion:
-! 	devuelve la posicion de la banda superior para un elemento de la diagonal i
+! 	devuelve la posicion de la banda superior para un elemento j de la diagonal
 !
 ! ---------> Devuelve:
 !               l : la posicion de la banda superior 
@@ -189,7 +189,7 @@ END FUNCTION
 !               j : elemento j de la matriz
 !               n : ancho de la matriz
 ! Descripcion:
-! 	datos los indices de una matriz en banda i y j, obtienes el indice j de la 
+! 	dados los indices de una matriz en banda i y j, obtienes el indice j de la 
 !	matriz en banda correspondiente
 ! 
 ! ---------> Devuelve:
@@ -224,7 +224,7 @@ END FUNCTION
 !             * n      : numero de puntos en x
 !             * m      : numero de puntos en y
 ! Descipcion:
-! 	pide al usuario los datos o los lee de un archivo de datos y los devuelve 
+! 	pide al usuario los datos o los lee de un archivo y los devuelve 
 !	al programa principal
 !
 ! **********************************************************************************
@@ -554,8 +554,8 @@ END SUBROUTINE
 ! ---------> Argumentos:
 !             * z       : vector con los terminos independientes del sistema
 !               a,b,c,w : elementos de la matriz de coeficientes
-!               te     : temperatura del medio exterior
-!               tf     : temperatura de la fuente de calor
+!               te      : temperatura del medio exterior
+!               tf      : temperatura de la fuente de calor
 !               n       : numero de puntos en x
 !               m       : numero de puntos en y
 ! Descipcion:
